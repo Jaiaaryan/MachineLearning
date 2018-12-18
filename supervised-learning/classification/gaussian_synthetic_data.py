@@ -9,7 +9,7 @@ K = 2
 # set numb of features
 M = 2
 # sample size
-N = 2
+N = 200
 
 
 column_names = ['ft_{}'.format(i) for i in range(M)] + ['class']
