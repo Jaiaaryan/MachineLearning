@@ -18,4 +18,5 @@ features = np.random.randn(N, M)
 classes = np.random.randint(low=0, high=K, size=(N, 1))
 data = np.hstack((features, classes))
 # save data to csv file
-np.savetxt(FILENAME, data, header=' '.join(column_names), comments='')
+np.savetxt(FILENAME, data, header=','.join(
+    column_names), delimiter=',', comments='')
