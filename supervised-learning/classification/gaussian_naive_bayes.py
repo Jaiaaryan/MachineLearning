@@ -28,11 +28,11 @@ class GaussianNB():
         self.targets = temp_df_mean.index.values
         # number of targets
         self.numb_targets = len(self.targets)
-        # probably do not need to store as attribute
+        self.numb_features = data.shape[1] - 1
+        # mean for each target dependent feature
         self.mean = temp_df_mean.values
         # unbiased standard deviation
         self.std = data.std().values
-        self.numb_features = data.shape[1] - 1
         # evaluate prior 
         if prior == None:
             self.prior = np.log(numb_obs_target/N)
@@ -63,7 +63,7 @@ class GaussianNB():
                 for j in range(self.numb_features):
                     distr[i, j] = scipy.stats.norm(
                         self.mean[i, j], self.std[i, j]).pdf(obs[j])
-            # posterior prob of each target - max log is equivalent
+            # posterior probability of each target 
             posterior = np.log(distr).sum(axis=1) + self.prior
             # choose target with max prob
             prediction[k] = self.targets[np.argmax(posterior)]
