@@ -10,65 +10,66 @@ data = pd.read_csv(FILENAME)
 
 class GaussianNB():
 
-    def __init__(self):
-        # parameter estimates for each class dependent feature distribution
-        self.mean = None
-        self.std = None
-        # numb of observations
-        self.N = None
-        # maybe no - do not store as attributes as we'll know
-        self.numb_features = None
-        self.numb_targets = None
-
     def train(self, data, target, prior=None):
         """
-        Obtaining parameter estimates for normal distributions 
-        to each class dependent feature via Max Likelihood
+        Obtaining Gaussian distributions parameters estimates for  
+        each target dependent feature via max likelihood
 
         Arguments: 
         data: pandas dataframe
-        target: string - column name of class in data
+        target: string - column name of target in data
         prior: pandas series mapping each class (index) to a prior probability
         """
-        self.N = data.shape[0]
-        self.numb_features = data.shape[1] - 1
 
-        data = data.groupby(by=target, as_index=True)
+        data = data.groupby(by=target, as_index=True, sort=False)
+        # numb of obs per target
+        numb_obs_target = data[target].count().values
+        # number of observations - for evaluating prior if not given
+        N = np.sum(numb_obs_target)
+        # temp so as to extract names of targets
         temp_df_mean = data.mean()
+
+        # targets' names
         self.targets = temp_df_mean.index.values
+        # number of targets
+        self.numb_targets = len(self.targets)
         # probably do not need to store as attribute
         self.mean = temp_df_mean.values
         # unbiased standard deviation
         self.std = data.std().values
-        # numb of obs per class
-        numb_obs_class = data.count().values[:,0]
-        # number of classes
-        self.numb_targets = len(self.targets)
-
-        # evaluate prior if prior is not supplied
+        self.numb_features = data.shape[1] - 1
+        # evaluate prior 
         if prior == None:
-            self.prior = np.log(numb_obs_class/self.N)
+            self.prior = np.log(numb_obs_target/N)
         else:
-            self.prior = prior
+            self.prior = np.log(prior.values)
 
     def predict(self, data):
         """
-        Predict classes for unlabelled dataset
+        Predict targets for unlabelled dataset
 
         Arguments:
         data: pandas dataframe of features only
+        assuming features are provided in the 
+        same order
         """
-        numb_obs = data.shape[0]
-        # array to store predicted values
-        prediction = np.zeros(numb_obs)
+
         # assuming order of features is the same as when trained
         data = data.values
+        # numb of observations
+        numb_obs = data.shape[0]
+        # array to store and return predicted values
+        prediction = np.zeros(numb_obs)
+        # maximise posterior for each possible obs
+        distr = np.zeros((self.numb_targets, self.numb_features))
         for k in range(numb_obs):
             obs = data[k]
-            distr = np.zeros((self.numb_targets, self.numb_features))
             for i in range(self.numb_targets):
                 for j in range(self.numb_features):
-                    distr[i,j] = scipy.stats.norm(self.mean[i,j], self.std[i, j]).pdf(obs[j])
-            posterior = np.log(distr).sum(axis = 1) + self.prior
+                    distr[i, j] = scipy.stats.norm(
+                        self.mean[i, j], self.std[i, j]).pdf(obs[j])
+            # posterior prob of each target - max log is equivalent
+            posterior = np.log(distr).sum(axis=1) + self.prior
+            # choose target with max prob
             prediction[k] = self.targets[np.argmax(posterior)]
         return prediction
