@@ -1,11 +1,6 @@
 import pandas as pd
 import scipy.stats
 import numpy as np
-# comment: yes I realised how useless is to use pandas dataframe instead of arrays - column names are useless
-
-FILENAME = 'MachineLearning/supervised-learning/classification/gaussian_synthetic_data.csv'
-
-data = pd.read_csv(FILENAME)
 
 
 class GaussianNB():
